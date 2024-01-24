@@ -2,7 +2,7 @@
 Asteroids in a 3-Torus
 
 # Video
-Coming soon!
+https://youtu.be/OZTFjtE9dOc
 
 # Controls
 ESC: quit
