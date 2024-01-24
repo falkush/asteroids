@@ -1,5 +1,5 @@
 # asteroids
-Asteroids in a 3-Torus
+Asteroids in a Flat 3-Torus
 
 # Video
 https://youtu.be/OZTFjtE9dOc
