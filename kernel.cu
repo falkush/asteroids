@@ -321,7 +321,7 @@ __global__ void modast(double* astrad, double* astpos0, double* astpos1, double*
 	int l;
 	int j,ii;
 	int newsym;
-	int ppos0, ppos1, ppos2;
+	int ppos[3]{};
 	double postmp[3]{};
 	double nastv[3]{};
 	double nnastv[3]{};
@@ -336,6 +336,8 @@ __global__ void modast(double* astrad, double* astpos0, double* astpos1, double*
 	int cnumplustmp = 1;
 	int lnumplustmp = 0;
 	int tmpidx;
+	int newsym2;
+	int pposk[3]{};
 	double hazmax = 0;
 	double tmpd;
 	int tmpproj, projpp1, projpp2;
@@ -371,6 +373,7 @@ __global__ void modast(double* astrad, double* astpos0, double* astpos1, double*
 		astv0[0] = 0.001;
 		astv1[0] = 0;
 		astv2[0] = 0;
+		asttopo[0] = 0;
 
 		lout[0] = false;
 		lout[1] = false;
@@ -489,25 +492,31 @@ __global__ void modast(double* astrad, double* astpos0, double* astpos1, double*
 		dpos1 = astpos1[l] + 0.5;
 		dpos2 = astpos2[l] + 0.5;
 
-		ppos0 = dpos0;
-		ppos1 = dpos1;
-		ppos2 = dpos2;
+		ppos[0] = dpos0;
+		ppos[1] = dpos1;
+		ppos[2] = dpos2;
 
-		if (dpos0 < 0) ppos0--;
-		if (dpos1 < 0) ppos1--;
-		if (dpos2 < 0) ppos2--;
+		if (dpos0 < 0) ppos[0]--;
+		if (dpos1 < 0) ppos[1]--;
+		if (dpos2 < 0) ppos[2]--;
 
-		if (ppos0 != 0 || ppos1 != 0 || ppos2 != 0)
+		if (ppos[0] != 0 || ppos[1] != 0 || ppos[2] != 0)
 		{
-			ppos0 %= 12;
-			ppos1 %= 12;
-			ppos2 %= 12;
-			if (ppos0 < 0)ppos0 += 12;
-			if (ppos1 < 0)ppos1 += 12;
-			if (ppos2 < 0)ppos2 += 12;
+			newsym2 = gginv[topo[currenttopo][asttopo[l]]];
 
+			pposk[0] = gsign[newsym2][0] * ppos[gperm[newsym2][0]];
+			pposk[1] = gsign[newsym2][1] * ppos[gperm[newsym2][1]];
+			pposk[2] = gsign[newsym2][2] * ppos[gperm[newsym2][2]];
 
-			newsym = topo[currenttopo][ppos2 + 12 * ppos1 + 12 * 12 * ppos0];
+			ppos[0] %= 12;
+			ppos[1] %= 12;
+			ppos[2] %= 12;
+			while (ppos[0] < 0)ppos[0] += 12;
+			while (ppos[1] < 0)ppos[1] += 12;
+			while (ppos[2] < 0)ppos[2] += 12;
+
+			newsym = topo[currenttopo][ppos[2] + 12 * ppos[1] + 12 * 12 * ppos[0]];
+
 
 			tmpproj = asttopo[l];
 			projpp2 = tmpproj % 12;
@@ -517,16 +526,20 @@ __global__ void modast(double* astrad, double* astpos0, double* astpos1, double*
 			tmpproj -= projpp1;
 			tmpproj /= 12;
 			
-			ppos0 += tmpproj;
-			ppos0 %= 12;
-			ppos1 += projpp1;
-			ppos1 %= 12;
-			ppos2 += projpp2;
-			ppos2 %= 12;
-
-			asttopo[l] = ppos2 + 12 * ppos1 + 12 * 12 * ppos0;
 
 
+			pposk[0] += tmpproj;
+			pposk[0] %= 12;
+			pposk[1] += projpp1;
+			pposk[1] %= 12;
+			pposk[2] += projpp2;
+			pposk[2] %= 12;
+
+			while (pposk[0] < 0)pposk[0] += 12;
+			while (pposk[1] < 0)pposk[1] += 12;
+			while (pposk[2] < 0)pposk[2] += 12;
+
+			asttopo[l] = pposk[2] + 12 * pposk[1] + 12 * 12 * pposk[0];
 
 			dpos0 = fmod(dpos0, 1.0);
 			if (dpos0 < 0) dpos0++;
@@ -635,25 +648,25 @@ __global__ void modast(double* astrad, double* astpos0, double* astpos1, double*
 			dpos1 = lpos1[i] + 0.5;
 			dpos2 = lpos2[i] + 0.5;
 
-			ppos0 = dpos0;
-			ppos1 = dpos1;
-			ppos2 = dpos2;
+			ppos[0] = dpos0;
+			ppos[1] = dpos1;
+			ppos[2] = dpos2;
 
-			if (dpos0 < 0) ppos0--;
-			if (dpos1 < 0) ppos1--;
-			if (dpos2 < 0) ppos2--;
+			if (dpos0 < 0) ppos[0]--;
+			if (dpos1 < 0) ppos[1]--;
+			if (dpos2 < 0) ppos[2]--;
 
-			if (ppos0 != 0 || ppos1 != 0 || ppos2 != 0)
+			if (ppos[0] != 0 || ppos[1] != 0 || ppos[2] != 0)
 			{
-				ppos0 %= 12;
-				ppos1 %= 12;
-				ppos2 %= 12;
-				if (ppos0 < 0)ppos0 += 12;
-				if (ppos1 < 0)ppos1 += 12;
-				if (ppos2 < 0)ppos2 += 12;
+				ppos[0] %= 12;
+				ppos[1] %= 12;
+				ppos[2] %= 12;
+				if (ppos[0] < 0)ppos[0] += 12;
+				if (ppos[1] < 0)ppos[1] += 12;
+				if (ppos[2] < 0)ppos[2] += 12;
 
 
-				newsym = topo[currenttopo][ppos2 + 12 * ppos1 + 12 * 12 * ppos0];
+				newsym = topo[currenttopo][ppos[2] + 12 * ppos[1] + 12 * 12 * ppos[0]];
 
 				dpos0 = fmod(dpos0, 1.0);
 				if (dpos0 < 0) dpos0++;
@@ -741,19 +754,19 @@ __global__ void modast(double* astrad, double* astpos0, double* astpos1, double*
 				{
 					if (i != 0 || j != 0 || k != 0)
 					{
-						ppos0 = i;
-						ppos1 = j;
-						ppos2 = k;
+						ppos[0] = i;
+						ppos[1] = j;
+						ppos[2] = k;
 
 						postmp[0] = astpos0[l];
 						postmp[1] = astpos1[l];
 						postmp[2] = astpos2[l];
 
-						if (ppos0 < 0)ppos0 += 12;
-						if (ppos1 < 0)ppos1 += 12;
-						if (ppos2 < 0)ppos2 += 12;
+						if (ppos[0] < 0)ppos[0] += 12;
+						if (ppos[1] < 0)ppos[1] += 12;
+						if (ppos[2] < 0)ppos[2] += 12;
 
-						newsym = gginv[topo[currenttopo][ppos2 + 12 * ppos1 + 12 * 12 * ppos0]];
+						newsym = gginv[topo[currenttopo][ppos[2] + 12 * ppos[1] + 12 * 12 * ppos[0]]];
 
 						dpos0 = gsign[newsym][0] * postmp[gperm[newsym][0]];
 						dpos1 = gsign[newsym][1] * postmp[gperm[newsym][1]];
@@ -800,19 +813,19 @@ __global__ void modast(double* astrad, double* astpos0, double* astpos1, double*
 			{
 				if (i != 0 || j != 0 || k != 0)
 				{
-					ppos0 = i;
-					ppos1 = j;
-					ppos2 = k;
+					ppos[0] = i;
+					ppos[1] = j;
+					ppos[2] = k;
 
 					postmp[0] = ccpos0[0];
 					postmp[1] = ccpos1[0];
 					postmp[2] = ccpos2[0];
 
-					if (ppos0 < 0)ppos0 += 12;
-					if (ppos1 < 0)ppos1 += 12;
-					if (ppos2 < 0)ppos2 += 12;
+					if (ppos[0] < 0)ppos[0] += 12;
+					if (ppos[1] < 0)ppos[1] += 12;
+					if (ppos[2] < 0)ppos[2] += 12;
 
-					newsym = gginv[topo[currenttopo][ppos2 + 12 * ppos1 + 12*12*ppos0]];
+					newsym = gginv[topo[currenttopo][ppos[2] + 12 * ppos[1] + 12*12*ppos[0]]];
 
 				
 
@@ -912,13 +925,13 @@ __global__ void modast(double* astrad, double* astpos0, double* astpos1, double*
 						astpos2[tmpidx] -= tmp2 * astrad[tmpidx];
 
 
-						astv0[tmpidx] = -0.001 * tmp0;
-						astv1[tmpidx] = -0.001 * tmp1;
-						astv2[tmpidx] = -0.001 * tmp2;
+						astv0[tmpidx] = -0.001 * tmp0 * (0.5+2.0*(nbframe%10)/10.0);
+						astv1[tmpidx] = -0.001 * tmp1 * (0.5 +2.0 * (nbframe % 10) / 10.0);
+						astv2[tmpidx] = -0.001 * tmp2 * (0.5 + 2.0 * (nbframe % 10) / 10.0);
 
-						astv0[astnum[0]] = 0.001 * tmp0;
-						astv1[astnum[0]] = 0.001 * tmp1;
-						astv2[astnum[0]] = 0.001 * tmp2;
+						astv0[astnum[0]] = 0.001 * tmp0 * (0.5 + 2.0 * (nbframe % 10) / 10.0);
+						astv1[astnum[0]] = 0.001 * tmp1 * (0.5 + 2.0 * (nbframe % 10) / 10.0);
+						astv2[astnum[0]] = 0.001 * tmp2 * (0.5 + 2.0 * (nbframe % 10) / 10.0);
 
 						asttopo[tmpidx] = 0;
 						asttopo[astnum[0]] = 0;
@@ -927,25 +940,31 @@ __global__ void modast(double* astrad, double* astpos0, double* astpos1, double*
 						dpos1 = astpos1[tmpidx] + 0.5;
 						dpos2 = astpos2[tmpidx] + 0.5;
 
-						ppos0 = dpos0;
-						ppos1 = dpos1;
-						ppos2 = dpos2;
+						ppos[0] = dpos0;
+						ppos[1] = dpos1;
+						ppos[2] = dpos2;
 
-						if (dpos0 < 0) ppos0--;
-						if (dpos1 < 0) ppos1--;
-						if (dpos2 < 0) ppos2--;
+						if (dpos0 < 0) ppos[0]--;
+						if (dpos1 < 0) ppos[1]--;
+						if (dpos2 < 0) ppos[2]--;
 
-						if (ppos0 != 0 || ppos1 != 0 || ppos2 != 0)
+						if (ppos[0] != 0 || ppos[1] != 0 || ppos[2] != 0)
 						{
-							ppos0 %= 12;
-							ppos1 %= 12;
-							ppos2 %= 12;
-							if (ppos0 < 0)ppos0 += 12;
-							if (ppos1 < 0)ppos1 += 12;
-							if (ppos2 < 0)ppos2 += 12;
+							newsym2 = gginv[topo[currenttopo][asttopo[tmpidx]]];
 
+							pposk[0] = gsign[newsym2][0] * ppos[gperm[newsym2][0]];
+							pposk[1] = gsign[newsym2][1] * ppos[gperm[newsym2][1]];
+							pposk[2] = gsign[newsym2][2] * ppos[gperm[newsym2][2]];
 
-							newsym = topo[currenttopo][ppos2 + 12 * ppos1 + 12 * 12 * ppos0];
+							ppos[0] %= 12;
+							ppos[1] %= 12;
+							ppos[2] %= 12;
+							while (ppos[0] < 0)ppos[0] += 12;
+							while (ppos[1] < 0)ppos[1] += 12;
+							while (ppos[2] < 0)ppos[2] += 12;
+
+							newsym = topo[currenttopo][ppos[2] + 12 * ppos[1] + 12 * 12 * ppos[0]];
+
 
 							tmpproj = asttopo[tmpidx];
 							projpp2 = tmpproj % 12;
@@ -955,14 +974,20 @@ __global__ void modast(double* astrad, double* astpos0, double* astpos1, double*
 							tmpproj -= projpp1;
 							tmpproj /= 12;
 
-							ppos0 += tmpproj;
-							ppos0 %= 12;
-							ppos1 += projpp1;
-							ppos1 %= 12;
-							ppos2 += projpp2;
-							ppos2 %= 12;
 
-							asttopo[tmpidx] = ppos2 + 12 * ppos1 + 12 * 12 * ppos0;
+
+							pposk[0] += tmpproj;
+							pposk[0] %= 12;
+							pposk[1] += projpp1;
+							pposk[1] %= 12;
+							pposk[2] += projpp2;
+							pposk[2] %= 12;
+
+							while (pposk[0] < 0)pposk[0] += 12;
+							while (pposk[1] < 0)pposk[1] += 12;
+							while (pposk[2] < 0)pposk[2] += 12;
+
+							asttopo[tmpidx] = pposk[2] + 12 * pposk[1] + 12 * 12 * pposk[0];
 
 							dpos0 = fmod(dpos0, 1.0);
 							if (dpos0 < 0) dpos0++;
@@ -1004,25 +1029,31 @@ __global__ void modast(double* astrad, double* astpos0, double* astpos1, double*
 						dpos1 = astpos1[astnum[0]] + 0.5;
 						dpos2 = astpos2[astnum[0]] + 0.5;
 
-						ppos0 = dpos0;
-						ppos1 = dpos1;
-						ppos2 = dpos2;
+						ppos[0] = dpos0;
+						ppos[1] = dpos1;
+						ppos[2] = dpos2;
 
-						if (dpos0 < 0) ppos0--;
-						if (dpos1 < 0) ppos1--;
-						if (dpos2 < 0) ppos2--;
+						if (dpos0 < 0) ppos[0]--;
+						if (dpos1 < 0) ppos[1]--;
+						if (dpos2 < 0) ppos[2]--;
 
-						if (ppos0 != 0 || ppos1 != 0 || ppos2 != 0)
+						if (ppos[0] != 0 || ppos[1] != 0 || ppos[2] != 0)
 						{
-							ppos0 %= 12;
-							ppos1 %= 12;
-							ppos2 %= 12;
-							if (ppos0 < 0)ppos0 += 12;
-							if (ppos1 < 0)ppos1 += 12;
-							if (ppos2 < 0)ppos2 += 12;
+							newsym2 = gginv[topo[currenttopo][asttopo[astnum[0]]]];
 
+							pposk[0] = gsign[newsym2][0] * ppos[gperm[newsym2][0]];
+							pposk[1] = gsign[newsym2][1] * ppos[gperm[newsym2][1]];
+							pposk[2] = gsign[newsym2][2] * ppos[gperm[newsym2][2]];
 
-							newsym = topo[currenttopo][ppos2 + 12 * ppos1 + 12 * 12 * ppos0];
+							ppos[0] %= 12;
+							ppos[1] %= 12;
+							ppos[2] %= 12;
+							while (ppos[0] < 0)ppos[0] += 12;
+							while (ppos[1] < 0)ppos[1] += 12;
+							while (ppos[2] < 0)ppos[2] += 12;
+
+							newsym = topo[currenttopo][ppos[2] + 12 * ppos[1] + 12 * 12 * ppos[0]];
+
 
 							tmpproj = asttopo[astnum[0]];
 							projpp2 = tmpproj % 12;
@@ -1032,14 +1063,20 @@ __global__ void modast(double* astrad, double* astpos0, double* astpos1, double*
 							tmpproj -= projpp1;
 							tmpproj /= 12;
 
-							ppos0 += tmpproj;
-							ppos0 %= 12;
-							ppos1 += projpp1;
-							ppos1 %= 12;
-							ppos2 += projpp2;
-							ppos2 %= 12;
 
-							asttopo[astnum[0]] = ppos2 + 12 * ppos1 + 12 * 12 * ppos0;
+
+							pposk[0] += tmpproj;
+							pposk[0] %= 12;
+							pposk[1] += projpp1;
+							pposk[1] %= 12;
+							pposk[2] += projpp2;
+							pposk[2] %= 12;
+
+							while (pposk[0] < 0)pposk[0] += 12;
+							while (pposk[1] < 0)pposk[1] += 12;
+							while (pposk[2] < 0)pposk[2] += 12;
+
+							asttopo[astnum[0]] = pposk[2] + 12 * pposk[1] + 12 * 12 * pposk[0];
 
 							dpos0 = fmod(dpos0, 1.0);
 							if (dpos0 < 0) dpos0++;
@@ -1089,19 +1126,19 @@ __global__ void modast(double* astrad, double* astpos0, double* astpos1, double*
 									{
 										if (i != 0 || j != 0 || k != 0)
 										{
-											ppos0 = i;
-											ppos1 = j;
-											ppos2 = k;
+											ppos[0] = i;
+											ppos[1] = j;
+											ppos[2] = k;
 
 											postmp[0] = astpos0[l];
 											postmp[1] = astpos1[l];
 											postmp[2] = astpos2[l];
 
-											if (ppos0 < 0)ppos0 += 12;
-											if (ppos1 < 0)ppos1 += 12;
-											if (ppos2 < 0)ppos2 += 12;
+											if (ppos[0] < 0)ppos[0] += 12;
+											if (ppos[1] < 0)ppos[1] += 12;
+											if (ppos[2] < 0)ppos[2] += 12;
 
-											newsym = gginv[topo[currenttopo][ppos2 + 12 * ppos1 + 12 * 12 * ppos0]];
+											newsym = gginv[topo[currenttopo][ppos[2] + 12 * ppos[1] + 12 * 12 * ppos[0]]];
 
 											dpos0 = gsign[newsym][0] * postmp[gperm[newsym][0]];
 											dpos1 = gsign[newsym][1] * postmp[gperm[newsym][1]];
@@ -1160,19 +1197,19 @@ __global__ void modast(double* astrad, double* astpos0, double* astpos1, double*
 					{
 						if (i != 0 || j != 0 || k != 0)
 						{
-							ppos0 = i;
-							ppos1 = j;
-							ppos2 = k;
+							ppos[0] = i;
+							ppos[1] = j;
+							ppos[2] = k;
 
 							postmp[0] = lpos0[ii];
 							postmp[1] = lpos1[ii];
 							postmp[2] = lpos2[ii];
 
-							if (ppos0 < 0)ppos0 += 12;
-							if (ppos1 < 0)ppos1 += 12;
-							if (ppos2 < 0)ppos2 += 12;
+							if (ppos[0] < 0)ppos[0] += 12;
+							if (ppos[1] < 0)ppos[1] += 12;
+							if (ppos[2] < 0)ppos[2] += 12;
 
-							newsym = gginv[topo[currenttopo][ppos2 + 12 * ppos1 + 12 * 12 * ppos0]];
+							newsym = gginv[topo[currenttopo][ppos[2] + 12 * ppos[1] + 12 * 12 * ppos[0]]];
 
 							dpos0 = gsign[newsym][0] * postmp[gperm[newsym][0]];
 							dpos1 = gsign[newsym][1] * postmp[gperm[newsym][1]];
@@ -1269,7 +1306,7 @@ __global__ void modast(double* astrad, double* astpos0, double* astpos1, double*
 	cnumplus[0] = cnumplustmp;
 }
 
-__global__ void addKernel(uint8_t * buffer, int** gsyms, int** ggstruct, int** gperm, int** gsign, double* vecl, double pos0, double pos1, double pos2, double vec0, double vec1, double vec2, double addy0, double addy1, double addy2, double addz0, double addz1, double addz2, int rep0, int rep1, int rep2, int rep3, int rep4, int rep5, int* astnum, int* astnumplus, double* astrad, double* astpos0, double* astpos1, double* astpos2, int currenttopo, double* ccpos0, double* ccpos1, double* ccpos2, int* cnumplus, double* lpos0, double* lpos1, double* lpos2, int* lnumplus,bool* rip, int nbframe, double* haz, int* lidx, bool* lout, double* seedist, bool w0, bool w1, bool w2, bool w3, bool w4, bool w5, int* loutf, double m0, double m1, double m2, double m3, double m4, double m5, double m6, double m7, double m8, int* ccsym, int* astsym, double** astmat, int* astplusidx, int* asttopo, int** topo)
+__global__ void addKernel(uint8_t * buffer, int** gsyms, int** ggstruct, int** gperm, int** gsign, double* vecl, double pos0, double pos1, double pos2, double vec0, double vec1, double vec2, double addy0, double addy1, double addy2, double addz0, double addz1, double addz2, int rep0, int rep1, int rep2, int rep3, int rep4, int rep5, int* astnum, int* astnumplus, double* astrad, double* astpos0, double* astpos1, double* astpos2, int currenttopo, double* ccpos0, double* ccpos1, double* ccpos2, int* cnumplus, double* lpos0, double* lpos1, double* lpos2, int* lnumplus,bool* rip, int nbframe, double* haz, int* lidx, bool* lout, double* seedist, bool w0, bool w1, bool w2, bool w3, bool w4, bool w5, int* loutf, double m0, double m1, double m2, double m3, double m4, double m5, double m6, double m7, double m8, int* ccsym, int* astsym, double** astmat, int* astplusidx, int* asttopo, int** topo, int* gginv)
 	{
 	
 	double csize = 0.05;
@@ -1620,7 +1657,7 @@ __global__ void addKernel(uint8_t * buffer, int** gsyms, int** ggstruct, int** g
 		}
 		else {
 			newsym = astsym[astcolidx];
-			newsym2 = topo[currenttopo][asttopo[astplusidx[astcolidx]]];
+			newsym2 = gginv[topo[currenttopo][asttopo[astplusidx[astcolidx]]]];
 
 			cont[0] = (cpos[0] + astcolmin * vecn[0]) - astpos0[astcolidx];
 			cont[1] = (cpos[1] + astcolmin * vecn[1]) - astpos1[astcolidx];
@@ -2013,7 +2050,7 @@ __global__ void addKernel(uint8_t * buffer, int** gsyms, int** ggstruct, int** g
 			}
 			else {
 				newsym = astsym[astcolidx];
-				newsym2 = topo[currenttopo][asttopo[astplusidx[astcolidx]]];
+				newsym2 = gginv[topo[currenttopo][asttopo[astplusidx[astcolidx]]]];
 
 				cont[0] = (ncpos[0] + astcolmin * nvecn[0]) - astpos0[astcolidx];
 				cont[1] = (ncpos[1] + astcolmin * nvecn[1]) - astpos1[astcolidx];
@@ -2257,7 +2294,7 @@ void cudathingy(uint8_t* pixels, double pos0, double pos1, double pos2, double v
 	cudaDeviceSynchronize();
 	modast << <1, 1 >> > (astrad, astpos0, astpos1, astpos2,astv0,astv1,astv2,topo,gperm,gsign,currenttopo,astnum,astnumplus, lpos0,lpos1,lpos2,lv0,lv1,lv2,lnumplus, pos0, pos1, pos2, ccpos0, ccpos1, ccpos2, cnumplus, fireflag, v0, v1, v2, lout, loutf, nbframe,gginv,astplusidx,rip,haz,lidx,resetflag,seedist,sdp,sdm,cv0,cv1,cv2,w0,w1,w2,w3,w4,w5,ccsym,astsym,astmat,astmatv,asttopo);
 	cudaDeviceSynchronize();
-	addKernel << <(int)(1920 * 1080 / 480), 480 >> > (buffer, gsyms, ggstruct, gperm, gsign, vecl, pos0, pos1, pos2, vec0, vec1, vec2, addy0, addy1, addy2, addz0, addz1, addz2,rep0,rep1,rep2,rep3,rep4,rep5, astnum, astnumplus, astrad,  astpos0,  astpos1,  astpos2,currenttopo,ccpos0, ccpos1,  ccpos2, cnumplus, lpos0, lpos1, lpos2, lnumplus,rip,nbframe,haz,lidx,lout,seedist,w0,w1,w2,w3,w4,w5,loutf,m0,m1,m2,m3,m4,m5,m6,m7,m8,ccsym,astsym,astmat,astplusidx,asttopo,topo);
+	addKernel << <(int)(1920 * 1080 / 480), 480 >> > (buffer, gsyms, ggstruct, gperm, gsign, vecl, pos0, pos1, pos2, vec0, vec1, vec2, addy0, addy1, addy2, addz0, addz1, addz2,rep0,rep1,rep2,rep3,rep4,rep5, astnum, astnumplus, astrad,  astpos0,  astpos1,  astpos2,currenttopo,ccpos0, ccpos1,  ccpos2, cnumplus, lpos0, lpos1, lpos2, lnumplus,rip,nbframe,haz,lidx,lout,seedist,w0,w1,w2,w3,w4,w5,loutf,m0,m1,m2,m3,m4,m5,m6,m7,m8,ccsym,astsym,astmat,astplusidx,asttopo,topo,gginv);
 	cudaDeviceSynchronize();
 	cudaMemcpy(pixels, buffer, 4 * 1920 * 1080 * sizeof(uint8_t), cudaMemcpyDeviceToHost);
 }
