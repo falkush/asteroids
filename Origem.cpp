@@ -4,6 +4,7 @@
 #include "windows.h" 
 #include <stdio.h>
 
+
 static int lat[50][50][50]{};
 static bool latset[50][50][50]{};
 static int syms[48][6]{};
