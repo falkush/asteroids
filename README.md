@@ -5,6 +5,8 @@ Asteroids in a 3-Torus
 Coming soon!
 
 # Controls
+ESC: quit
+
 w: go foward
 
 z: change shape (+1 mod 187)
